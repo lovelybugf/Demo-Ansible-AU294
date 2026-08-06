@@ -5,7 +5,7 @@ ansible-navigator:
     container-engine: podman
     enabled: true
     # Use the official community Ansible creator execution environment
-    image: quay.io/ansible/creator-ee:v3.0.0
+    image: quay.io/ansible/creator-ee:latest
     pull:
       policy: missing
   
