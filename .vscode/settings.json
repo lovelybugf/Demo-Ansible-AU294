@@ -1,0 +1,7 @@
+{
+  "ansible.validation.lint.enabled": true,
+  "ansible.executionEnvironment.enabled": true,
+  "ansible.executionEnvironment.containerEngine": "podman",
+  "ansible.executionEnvironment.image": "quay.io/ansible/creator-ee:latest",
+  "ansible.executionEnvironment.pull.policy": "missing"
+}
