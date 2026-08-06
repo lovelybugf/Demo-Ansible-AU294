@@ -1,133 +1,307 @@
-# LỘ TRÌNH & TÀI LIỆU HỌC ANSIBLE CHUẨN RED HAT
+# HƯỚNG DẪN HỌC & THỰC HÀNH TOÀN DIỆN ANSIBLE (CHUẨN RED HAT AU294 / RH294)
 
-Tài liệu này được tổng hợp từ hai chương tài liệu tham khảo Red Hat của bạn:
-1. **Chapter 1: An Introduction to Ansible** (Giới thiệu & Cấu hình môi trường)
-2. **Chapter 2: Introduction to Developing Automation Content** (Xây dựng Inventory, viết Playbooks & Xử lý sự cố)
-
-Tài liệu được thiết kế riêng để bạn thực hành trực tiếp trên máy ảo **RHEL 10.2 VM** bằng công cụ **`ansible-navigator`** kết hợp với **Podman**.
+Tài liệu này được tổng hợp từ toàn bộ kho tài liệu học tập của bạn bao gồm 8 Chương lý thuyết và 4 Bài Lab thực hành tổng hợp của chương trình đào tạo **Red Hat Linux Automation with Ansible**.
 
 ---
 
-## PHẦN I: CÁC KHÁI NIỆM CỐT LÕI BẠN PHẢI NẮM VỮNG
+## PHẦN I: BẢN ĐỒ LÝ THUYẾT (TÓM TẮT TỪ CẤP CHƯƠNG 1 - 8)
 
-### 1. Cơ chế hoạt động Agentless (Không cần Agent)
-* Ansible không cần cài đặt bất kỳ phần mềm chạy ngầm (Agent) nào trên các máy chủ đích (Managed Hosts).
-* Nó kết nối tới các máy Linux/Unix qua **SSH** và các máy Windows qua **WinRM**.
-* Khi thực thi, nó đẩy các đoạn chương trình nhỏ gọi là **Ansible modules** sang máy đích, chạy xong sẽ tự động xóa sạch.
+### Chương 1 & 2: Khởi đầu với Ansible & Cấu trúc Dự án
+* **Kiến trúc**: Control Node (máy chạy lệnh - máy RHEL của bạn) kết nối qua SSH tới Managed Hosts (các máy cần điều khiển).
+* **Inventory**: Tệp quản lý danh sách IP/Hostname của máy đích. Hỗ trợ gom nhóm (`[webservers]`), nhóm lồng nhóm (`[group:children]`), phạm vi giải IP (`192.168.1.[1:50]`).
+* **YAML**: Cú pháp cơ bản của Playbook. Thụt lề bằng dấu cách (space), không dùng phím Tab.
 
-### 2. Tính nhất quán (Idempotency)
-* Đây là tính chất quan trọng nhất của Ansible. Một playbook có thể chạy đi chạy lại nhiều lần nhưng chỉ thực hiện thay đổi khi trạng thái thực tế của máy đích khác với trạng thái mong muốn được định nghĩa trong code.
-* Nếu hệ thống đã ở trạng thái mong muốn, Ansible sẽ chỉ báo cáo là `ok` (không có thay đổi nào) thay vì chạy lại từ đầu.
+### Chương 3: Biến (Variables), Facts & Ansible Vault
+* **Biến (Vars)**: Dùng để lưu trữ các giá trị động. Khai báo trong playbook (`vars:`), tệp biến (`vars_files:`), hoặc các thư mục đặc biệt `group_vars/` và `host_vars/`.
+* **Facts**: Dữ liệu hệ thống tự động thu thập từ máy đích ở đầu mỗi Play (Gathering Facts). Ví dụ: `ansible_facts['hostname']`, `ansible_facts['memtotal_mb']`.
+* **Ansible Vault**: Mã hóa các thông tin nhạy cảm (như mật khẩu, khóa bí mật) bằng thuật toán AES-256. Lệnh: `ansible-vault encrypt secret.yml`.
 
-### 3. Quy tắc cú pháp YAML (Dùng viết Playbook)
-* Playbook sử dụng định dạng YAML. Định dạng này **không hỗ trợ phím Tab** để thụt đầu dòng, bạn bắt buộc phải dùng **phím cách (Space)**.
-* Các phần tử cùng cấp trong danh sách phải thẳng hàng thẳng cột với nhau (thường thụt lề 2 dấu cách cho mỗi cấp con).
-* Một tệp playbook thường bắt đầu bằng ba dấu gạch ngang (`---`).
+### Chương 4: Điều khiển Tác vụ (Task Control)
+* **Câu điều kiện (`when`)**: Chạy tác vụ chỉ khi điều kiện đúng (thường so khớp với biến hoặc Facts).
+* **Vòng lặp (`loop`)**: Chạy một tác vụ lặp lại với nhiều giá trị đầu vào (sử dụng biến lặp `{{ item }}`).
+* **Xử lý sự kiện (`handlers`)**: Tác vụ chỉ chạy khi có sự thay đổi được báo cáo (`notify`) bởi tác vụ khác (ví dụ: khởi động lại dịch vụ khi tệp cấu hình thay đổi).
+* **Khối tác vụ (`block` & `rescue`)**: Gom nhóm các tác vụ (`block`) và định nghĩa khối xử lý lỗi (`rescue`) để chạy nếu các tác vụ trong block bị lỗi (giống cấu trúc try-catch).
 
----
+### Chương 5: Quản lý & Triển khai Tệp tin (File Deployment)
+* **Tác vụ tệp**: Tạo, xóa, chỉnh sửa quyền hạn với các module `ansible.builtin.copy`, `ansible.builtin.file`, `ansible.builtin.lineinfile`.
+* **Jinja2 Templates (`ansible.builtin.template`)**: Đẩy tệp cấu hình động chứa các biến và logic xử lý (như vòng lặp `for`, câu lệnh `if`) lên máy đích từ tệp nguồn đuôi `.j2`.
 
-## PHẦN II: CẨM NANG LỆNH THỰC HÀNH TRÊN MÁY ẢO RHEL
+### Chương 6: Vận hành Ansible ở quy mô lớn ( AAP & Execution Environments)
+* Sử dụng **Automation Execution Environments (EE)** là các container (chạy bằng Podman/Docker) đóng gói sẵn toàn bộ môi trường chạy Ansible để đảm bảo tính đồng bộ từ môi trường phát triển (dev) lên sản xuất (prod).
 
-Dưới đây là các câu lệnh chính thức bạn sẽ dùng hàng ngày trên máy ảo để quản lý và vận hành Ansible:
+### Chương 7: Tái sử dụng code với Ansible Roles
+* **Ansible Roles**: Cấu trúc thư mục tiêu chuẩn hóa để chia nhỏ một playbook cồng kềnh thành các phần độc lập có thể tái sử dụng (tasks, handlers, vars, defaults, files, templates, meta).
 
-| Mục đích | Câu lệnh thực hiện trên RHEL VM | Giải thích |
-| :--- | :--- | :--- |
-| **Kiểm tra cú pháp** | `ansible-navigator run playbook.yml --syntax-check` | Kiểm tra lỗi chính tả, thụt dòng trước khi chạy thật. |
-| **Chạy thử (Dry Run)** | `ansible-navigator run playbook.yml --check` | Chạy giả lập để xem hệ thống sẽ thay đổi những gì (báo `changed`), nhưng không ghi đè thực tế. |
-| **Chạy thực tế** | `ansible-navigator run playbook.yml` | Thực thi playbook chạy thật. |
-| **Tăng độ chi tiết (Debug)** | `ansible-navigator run playbook.yml -v` | Thêm tham số `-v` (tối đa `-vvvvvv`) để xem chi tiết log kết nối và lỗi. |
-| **Xem tài liệu Module** | `ansible-navigator doc ansible.builtin.copy -m stdout` | Tra cứu nhanh tài liệu, các tham số và ví dụ của module `copy`. |
-| **Xem mẫu cấu hình** | `ansible-navigator -s doc ansible.builtin.user` | Xuất ra bộ khung (schema) trống của module `user` để copy dán vào code. |
-| **Kiểm tra Inventory** | `ansible-navigator inventory -i inventory -m stdout --list` | Liệt kê toàn bộ các máy chủ và nhóm máy chủ dưới dạng JSON. |
-| **Vẽ sơ đồ Inventory** | `ansible-navigator inventory -i inventory -m stdout --graph` | Hiển thị cấu trúc phân cấp nhóm máy chủ dạng cây trực quan. |
+### Chương 8: Tự động hóa Tác vụ Quản trị Linux
+* Sử dụng **Red Hat System Roles** (`redhat.rhel_system_roles`) - bộ sưu tập các role viết sẵn do Red Hat cung cấp để tự động hóa cấu hình hệ thống Linux như: Lưu trữ mạng (`storage`), tường lửa (`firewall`), mạng (`network`), tiến trình lặp (`cron`).
 
 ---
 
-## PHẦN III: BÀI TẬP THỰC HÀNH TỪ DỄ ĐẾN KHÓ (LÀM TRÊN VM)
+## PHẦN II: HƯỚNG DẪN THỰC HÀNH 4 BÀI LAB TỔNG HỢP (COMPREHENSIVE REVIEWS)
 
-Bạn hãy tạo các tệp tin playbook này trong thư mục `~/ansible` trên máy ảo RHEL và chạy thử để nâng cao kỹ năng:
+Dưới đây là đặc tả yêu cầu và mã nguồn mẫu cho 4 bài Lab lớn trong tài liệu học tập của bạn, được tối ưu hóa để chạy trực tiếp trên máy ảo RHEL của bạn.
 
-### Bài tập 1: Quản lý người dùng (Module `ansible.builtin.user`)
-**Mục tiêu**: Tạo ra một tài khoản người dùng mới tên là `ksec_admin` trên hệ thống, tự động gán UID là `3000` và đảm bảo tài khoản này luôn tồn tại.
-
-*Tạo file `practice_user.yml`:*
-```yaml
 ---
-- name: Thuc hanh quan ly User
-  hosts: localhost
-  gather_facts: false
-  become: true  # Can quyen root de tao user
-  tasks:
-    - name: Dam bao user ksec_admin ton tai voi UID 3000
-      ansible.builtin.user:
-        name: ksec_admin
-        uid: 3000
-        state: present
-        comment: "Tai khoan admin hoc tap"
+
+### LAB 1: Triển khai Ansible, Quản lý User và Package
+* **Mục tiêu**: Thiết lập tệp cấu hình, quản lý user (`joe`, `sam`), cài đặt dịch vụ và sử dụng câu điều kiện.
+
+#### **1. Tạo tệp Inventory (`/home/ducnam/ansible/inventory`):**
+```ini
+[dev]
+# Trong bài lab của Red Hat dùng servera và serverb. Bạn có thể trỏ thẳng vào IP máy ảo RHEL của bạn hoặc localhost
+localhost ansible_connection=local
 ```
-* **Cách chạy**: `ansible-navigator run practice_user.yml -K` (Tham số `-K` để nhập mật khẩu sudo của `ducnam` là `1`).
 
----
-
-### Bài tập 2: Quản lý tệp tin và dịch vụ (Module `copy` và `systemd_service`)
-**Mục tiêu**: Tạo một tệp cấu hình tạm thời và đảm bảo một dịch vụ hệ thống (ví dụ dịch vụ ghi log `rsyslog`) đang được khởi chạy cùng hệ thống.
-
-*Tạo file `practice_system.yml`:*
+#### **2. Playbook Quản lý User (`users.yml`):**
+Tạo và cấu hình người dùng hệ thống.
 ```yaml
 ---
-- name: Thuc hanh file va dich vu
-  hosts: localhost
-  gather_facts: false
+- name: Lab 1 - Quan ly Users joe va sam
+  hosts: dev
   become: true
   tasks:
-    - name: Tao mot file thong tin he thong
+    - name: Dam bao user joe va sam ton tai tren cac may chu
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - joe
+        - sam
+```
+
+#### **3. Playbook Quản lý Gói và Điều kiện (`packages.yml`):**
+Cài đặt phần mềm bằng biến danh sách (`loop`) và cài đặt có điều kiện (`when`) dựa trên dung lượng bộ nhớ Swap (Facts).
+```yaml
+---
+- name: Lab 1 - Quan ly Package va cau dieu kien
+  hosts: dev
+  become: true
+  vars:
+    # Danh sach cac goi can cai dat
+    packages:
+      - httpd
+      - mariadb-server
+  tasks:
+    - name: Cai dat cac goi phan mem trong danh sach
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ packages }}"
+
+    - name: Cai dat php neu swap space cua may lon hon 10 MB
+      ansible.builtin.dnf:
+        name: php
+        state: present
+      # ansible_facts['swapfree_mb'] lay dung luong swap trong thuc te
+      when: ansible_facts['swapfree_mb'] | default(0) > 10
+```
+* **Lệnh chạy**: `ansible-navigator run users.yml` và `ansible-navigator run packages.yml`
+
+---
+
+### LAB 2: Tạo Playbook nâng cao với Template, Handler & Xử lý lỗi
+* **Mục tiêu**: Deploy dịch vụ web Apache bằng Jinja2 template, cấu hình handler tự động restart dịch vụ và sử dụng khối `block/rescue` để ghi log lỗi khi gọi API/Web thất bại.
+
+#### **1. Tạo file cấu hình vhost ảo Jinja2 (`templates/vhost.conf.j2`):**
+```jinja2
+# {{ ansible_managed }}
+<VirtualHost *:80>
+    ServerAdmin webmaster@{{ ansible_facts['fqdn'] }}
+    DocumentRoot /var/www/vhosts/{{ ansible_facts['hostname'] }}
+    ServerName {{ ansible_facts['fqdn'] }}
+</VirtualHost>
+```
+
+#### **2. Playbook triển khai Web Server (`dev_deploy.yml`):**
+```yaml
+---
+- name: Lab 2 - Trien khai may chu Web
+  hosts: dev
+  become: true
+  tasks:
+    - name: Dam bao thu muc DocumentRoot ton tai
+      ansible.builtin.file:
+        path: "/var/www/vhosts/{{ ansible_facts['hostname'] }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy file index.html
       ansible.builtin.copy:
-        content: "Moi truong Ansible RHEL 10 hoat dong vao luc: {{ ansible_date_time.iso8601 | default('unknown') }}\n"
-        dest: /tmp/ansible_status.txt
+        content: "Welcome to {{ ansible_facts['fqdn'] }} website!\n"
+        dest: "/var/www/vhosts/{{ ansible_facts['hostname'] }}/index.html"
         mode: '0644'
 
-    - name: Dam bao dich vu rsyslog luon chay va khoi dong cung OS
+    - name: Day file cau hinh vhost tu Jinja2 Template
+      ansible.builtin.template:
+        src: templates/vhost.conf.j2
+        dest: /etc/httpd/conf.d/vhost.conf
+        mode: '0644'
+      notify: Restart HTTPD Service  # Goi handler neu file co su thay doi
+
+  handlers:
+    - name: Restart HTTPD Service
       ansible.builtin.systemd_service:
-        name: rsyslog
-        state: started
-        enabled: true
+        name: httpd
+        state: restarted
 ```
 
----
-
-### Bài tập 3: Viết Playbook có nhiều Play (Multi-Play Playbook)
-**Mục tiêu**: Thực hành viết một playbook chứa nhiều block `Play` khác nhau, chạy tuần tự trên các nhóm host khác nhau hoặc với các tài khoản khác nhau.
-
-*Tạo file `practice_multi_play.yml`:*
+#### **3. Playbook kiểm tra kết nối sử dụng Block & Rescue (`get_web_content.yml`):**
 ```yaml
 ---
-- name: Play thu nhat - Chay khong can quyen root
+- name: Lab 2 - Kiem tra noi dung web va xu ly loi
   hosts: localhost
   gather_facts: false
-  become: false
   tasks:
-    - name: Ping kiem tra cuc bo
-      ansible.builtin.ping:
+    - name: Khoi block kiem tra ket noi va ghi loi
+      block:
+        - name: Truy cap thu nghiem trang web
+          ansible.builtin.uri:
+            url: http://localhost
+            return_content: true
+          register: content # Luu ket qua tra ve vao bien content
 
-- name: Play thu hai - Yeu cau quyen root de ghi file he thong
-  hosts: localhost
-  gather_facts: false
-  become: true
-  tasks:
-    - name: Ghi loi chao vao file /etc/motd (Message of the Day)
-      ansible.builtin.copy:
-        content: "Chao mung ban den voi may chu Ansible Control Node RHEL 10.2!\n"
-        dest: /etc/motd
+      rescue:
+        - name: Ghi log loi ra file neu truy cap that bai
+          ansible.builtin.copy:
+            content: "Truy cap website that bai! Chi tiet loi: {{ content | to_nice_json }}\n"
+            dest: /home/ducnam/ansible/error.log
+            mode: '0644'
 ```
+* **Lệnh chạy**: Tạo tệp `site.yml` chứa liên kết import hai tệp trên và thực thi:
+  ```yaml
+  ---
+  - import_playbook: dev_deploy.yml
+  - import_playbook: get_web_content.yml
+  ```
+  Chạy lệnh: `ansible-navigator run site.yml`
 
 ---
 
-## PHẦN IV: CÁC LƯU Ý QUAN TRỌNG KHI HỌC THEO CHUẨN RED HAT
+### LAB 3: Quản trị hệ thống (LVM Storage, Vault & Cron)
+* **Mục tiêu**: Sử dụng System Roles cấu hình ổ đĩa LVM, tạo user bảo mật bằng mật khẩu mã hóa Ansible Vault, và cấu hình lịch chạy hệ thống.
 
-1. **Luôn dùng FQCN (Fully Qualified Collection Name)**:
-   * Tránh ghi tên module ngắn gọn như `copy`, `user`, `service`.
-   * Hãy tập thói quen ghi đầy đủ họ tên của module: `ansible.builtin.copy`, `ansible.builtin.user`, `ansible.builtin.systemd_service`. Điều này giúp tránh xung đột module khi dự án lớn lên.
-2. **Luôn đặt tên (`name`) cho Play và Task**:
-   * Tệp playbook chạy bằng `ansible-navigator` hiển thị nhật ký theo tên. Việc đặt tên rõ ràng giúp bạn biết chính xác tác vụ nào đang chạy và lỗi xảy ra ở đâu khi debug.
-3. **Tránh lạm dụng các module dòng lệnh tự do (`command`, `shell`, `raw`)**:
-   * Tài liệu Red Hat nhấn mạnh các module này không có tính chất *Idempotent* (mỗi lần chạy đều báo `changed` dù không có gì thay đổi). Chỉ sử dụng khi không có module chuyên dụng nào khác đáp ứng được công việc.
+#### **1. Tạo tệp mật khẩu mã hóa Vault (`pass-vault.yml`):**
+Tạo file chứa mật khẩu băm của developer:
+```yaml
+user_password_hash: "$6$rounds=656000$randomsalt$HjH9g7G8yHj9..."
+```
+Mã hóa file bằng mật khẩu Vault (ví dụ mật khẩu là `redhat`):
+```bash
+ansible-vault encrypt pass-vault.yml
+```
+
+#### **2. Playbook Quản lý User leo thang đặc quyền (`dev-users.yml`):**
+```yaml
+---
+- name: Lab 3 - Them nguoi dung developer va cau hinh sudo
+  hosts: dev
+  become: true
+  vars_files:
+    - pass-vault.yml # Nap file mat khau ma hoa
+  tasks:
+    - name: Dam bao group dev ton tai
+      ansible.builtin.group:
+        name: dev
+        state: present
+
+    - name: Tao nguoi dung developer
+      ansible.builtin.user:
+        name: developer
+        password: "{{ user_password_hash }}"
+        groups: dev
+        append: true
+        state: present
+
+    - name: Cau hinh sudo khong mat khau cho group dev
+      ansible.builtin.copy:
+        content: "%dev ALL=(ALL) NOPASSWD: ALL\n"
+        dest: /etc/sudoers.d/dev
+        validate: /usr/sbin/visudo -cf %s # Xac thuc cú phap sudoers truoc khi ghi de
+```
+
+#### **3. Playbook lên lịch Cron Job tự động hóa (`log-rotate.yml`):**
+```yaml
+---
+- name: Lab 3 - Lên lich chay logrotate vao nua dem
+  hosts: dev
+  become: true
+  tasks:
+    - name: Tao lich cron de rotate database logs
+      ansible.builtin.cron:
+        name: "Rotate database server logs"
+        cron_file: rotate_db
+        user: ducnam
+        minute: "0"
+        hour: "0"
+        job: "logrotate -f /etc/logrotate.d/dbserver"
+```
+* **Lệnh chạy**: `ansible-navigator run dev-users.yml --vault-password-file = <file>` hoặc chạy trực tiếp và nhập mật khẩu khi được hỏi:
+  ```bash
+  ansible-navigator run dev-users.yml --ask-vault-pass
+  ```
+
+---
+
+### LAB 4: Chuyển đổi Playbook thành Role tái sử dụng (Modularity)
+* **Mục tiêu**: Tổ chức lại một Playbook cài đặt dịch vụ HTTPD cồng kềnh thành một Role cấu trúc chuẩn `ansible-httpd` có thể tái sử dụng.
+
+#### **1. Tạo cấu trúc thư mục Role bằng lệnh `ansible-galaxy`:**
+Di chuyển vào thư mục dự án và chạy:
+```bash
+mkdir -p roles
+ansible-galaxy role init roles/ansible-httpd
+```
+Lệnh này sẽ sinh ra cấu trúc thư mục chuẩn:
+```text
+roles/ansible-httpd/
+├── defaults/       # Khai bao bien mac dinh (main.yml)
+├── files/          # Chua cac file tinh (nhu index.html)
+├── handlers/       # Chua cac handler xu ly su kien (main.yml)
+├── meta/           # Thong tin metadata ve role (main.yml)
+├── tasks/          # Tap hop cac tac vu chinh (main.yml)
+├── templates/      # Chua cac file template Jinja2 (vhost.conf.j2)
+└── vars/           # Bien uu tien cao hon defaults (main.yml)
+```
+
+#### **2. Di chuyển các tác vụ vào `roles/ansible-httpd/tasks/main.yml`:**
+```yaml
+---
+- name: Cai dat Apache Web package
+  ansible.builtin.dnf:
+    name: "{{ web_package }}"
+    state: present
+
+- name: Dam bao thu muc document root ton tai
+  ansible.builtin.file:
+    path: "{{ web_root }}"
+    state: directory
+    mode: '0755'
+
+- name: Day file cau hinh vhost tu Template
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: "{{ web_config_file }}"
+    mode: '0644'
+  notify: Restart Web Service
+```
+
+#### **3. Khai báo biến mặc định vào `roles/ansible-httpd/defaults/main.yml`:**
+```yaml
+---
+web_package: httpd
+web_service: httpd
+web_config_file: /etc/httpd/conf.d/vhost.conf
+web_root: /var/www/vhosts/localhost
+```
+
+#### **4. Tạo tệp playbook sử dụng role đó (`site.yml`):**
+```yaml
+---
+- name: Run the modular Web Server role
+  hosts: dev
+  become: true
+  roles:
+    - role: ansible-httpd
+```
+* **Lệnh chạy**: `ansible-navigator run site.yml`
