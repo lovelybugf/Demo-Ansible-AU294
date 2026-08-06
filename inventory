@@ -1,0 +1,4 @@
+# Ansible static inventory file
+
+[local]
+localhost ansible_connection=local

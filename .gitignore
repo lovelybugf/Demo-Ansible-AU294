@@ -1,0 +1,9 @@
+# Ansible temp and retry files
+*.retry
+*-artifact-*.json
+.ansible-navigator.log
+.ansible-navigator/
+ansible-navigator.log
+
+# VS Code directory (optional, but good to keep local settings local)
+.vscode/

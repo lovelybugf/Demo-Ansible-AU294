@@ -1,0 +1,12 @@
+---
+- name: Test Playbook - Verify Ansible Setup
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Ping localhost
+      ansible.builtin.ping:
+
+    - name: Print welcome and setup success message
+      ansible.builtin.debug:
+        msg: "Chúc mừng! Môi trường Ansible của bạn đã hoạt động chính xác."
+...

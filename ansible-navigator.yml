@@ -1,0 +1,18 @@
+---
+ansible-navigator:
+  execution-environment:
+    # Use Podman as the container engine (aligned with remote RHEL VM)
+    container-engine: podman
+    enabled: true
+    # Use the official community Ansible creator execution environment
+    image: quay.io/ansible/creator-ee:v3.0.0
+    pull:
+      policy: missing
+  
+  # Output mode: stdout prints directly to terminal (needed for basic runs / password prompts)
+  # Change to "interactive" to use the TUI (Textual User Interface)
+  mode: stdout
+  
+  # Disable generating playbook artifact JSON files by default
+  playbook-artifact:
+    enable: false

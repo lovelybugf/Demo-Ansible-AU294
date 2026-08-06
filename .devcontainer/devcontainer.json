@@ -1,0 +1,13 @@
+{
+  "name": "Ansible Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.ansible"
+      ]
+    }
+  },
+  "postCreateCommand": "pip3 install --user ansible ansible-navigator ansible-lint",
+  "remoteUser": "vscode"
+}
