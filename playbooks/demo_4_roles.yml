@@ -1,13 +1,30 @@
 ---
-- name: Demo Chuong 7 - Modular Code voi Ansible Roles
+- name: Demo Chuong 6 & 7 - Execution Order, Import/Include, Roles & Precedence
   hosts: dev
   become: true
   
-  # Ghi de cac bien mac dinh trong defaults/main.yml cua Role
   vars:
     http_port: 8080
     custom_index_text: "WOW! Web Server nay duoc trien khai qua Ansible Role thanh cong!"
+    # Thu nghiem ghi de bien co do uu tien CAO cua Role (Khong thanh cong do vars/main.yml co do uu tien cao hon)
+    role_version: "Thu nghiem ghi de tu Playbook Vars"
 
-  roles:
-    - role: web_server
+  pre_tasks:
+    - name: "=== [THỨ TỰ CHẠY 1] PRE_TASKS: Chạy trước tiên ==="
+      ansible.builtin.debug:
+        msg: "Pre-task: Dang chuẩn bị moi truong truoc khi goi Role..."
+
+  tasks:
+    - name: "=== [THỨ TỰ CHẠY 2] TASKS CHÍNH: Gọi Role động (include_role) ==="
+      ansible.builtin.include_role:
+        name: web_server
+
+    - name: "=== [THỨ TỰ CHẠY 3] TASKS CHÍNH: Chạy sau khi goi Role ==="
+      ansible.builtin.debug:
+        msg: "Task chinh: Role da duoc nap va chay xong."
+
+  post_tasks:
+    - name: "=== [THỨ TỰ CHẠY 4] POST_TASKS: Chạy sau cùng ==="
+      ansible.builtin.debug:
+        msg: "Post-task: Dang thuc hien kiem tra phan hoi web server hoan tat..."
 ...

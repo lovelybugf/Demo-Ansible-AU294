@@ -1,0 +1,6 @@
+---
+# Bien dac thu cho he dieu hanh ho RedHat
+web_pkg: httpd
+web_srv: httpd
+conf_path: /etc/httpd/conf/httpd.conf
+...

@@ -1,0 +1,6 @@
+---
+# Bien dac thu cho he dieu hanh ho Debian (Ubuntu)
+web_pkg: apache2
+web_srv: apache2
+conf_path: /etc/apache2/ports.conf
+...

@@ -3,6 +3,6 @@
 
 - name: Restart Web Service
   ansible.builtin.service:
-    name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    name: "{{ web_srv }}"
     state: restarted
 ...

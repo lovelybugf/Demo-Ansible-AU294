@@ -1,0 +1,4 @@
+---
+# Bien co dinh cua Role (Co do uu tien CAO, kho bi ghi de boi Playbook vars)
+role_version: "v2.0.1-Enterprise"
+...

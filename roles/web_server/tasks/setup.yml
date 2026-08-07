@@ -1,0 +1,7 @@
+---
+# Task con duoc goi qua import_tasks tu main.yml
+- name: "Task con: Cai dat package tu bien duoc nap dong (web_pkg)"
+  ansible.builtin.package:
+    name: "{{ web_pkg }}"
+    state: present
+...

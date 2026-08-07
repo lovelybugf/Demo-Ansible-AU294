@@ -1,36 +1,29 @@
 ---
-# Tasks thuc thi cho web_server role
+# Tasks thuc thi chinh cho web_server role
 
-- name: 1. Cai dat dich vu Web tuong ung voi OS Family
-  ansible.builtin.package:
-    name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
-    state: present
+- name: "1. [DEMO INCLUDE_VARS] Nap bien cau hinh rieng theo OS Family"
+  ansible.builtin.include_vars:
+    file: "{{ ansible_facts['os_family'] }}.yml"
 
-- name: 2. Cau hinh Port cho dich vu Apache (RedHat)
+- name: "2. [DEMO IMPORT_TASKS] Nhap file setup tinh de cai dat package"
+  ansible.builtin.import_tasks: setup.yml
+
+- name: "3. Cau hinh Port cho Apache su dung bien da nap tu file OS"
   ansible.builtin.lineinfile:
-    path: /etc/httpd/conf/httpd.conf
+    path: "{{ conf_path }}"
     regexp: '^Listen '
     line: "Listen {{ http_port }}"
-  when: ansible_facts['os_family'] == 'RedHat'
   notify: Restart Web Service
 
-- name: 3. Cau hinh Port cho dich vu Apache (Debian/Ubuntu)
-  ansible.builtin.lineinfile:
-    path: /etc/apache2/ports.conf
-    regexp: '^Listen '
-    line: "Listen {{ http_port }}"
-  when: ansible_facts['os_family'] == 'Debian'
-  notify: Restart Web Service
-
-- name: 4. Tao trang chu index.html tinh voi thong tin tuy bien
+- name: "4. Tao trang chu index.html tinh (Co goi ca bien co dinh role_version)"
   ansible.builtin.copy:
-    content: "<html><body style='font-family:sans-serif; text-align:center;'><h1>{{ custom_index_text }}</h1><h3>Webmaster: {{ server_admin }}</h3><h3>Running on Port: {{ http_port }}</h3></body></html>\n"
+    content: "<html><body style='font-family:sans-serif; text-align:center;'><h1>{{ custom_index_text }}</h1><h3>Webmaster: {{ server_admin }}</h3><h3>Running on Port: {{ http_port }}</h3><h4>Role version: {{ role_version }}</h4></body></html>\n"
     dest: "/var/www/html/index.html"
     mode: '0644'
 
-- name: 5. Dam bao dich vu Web duoc khoi chay va tu dong bat khi boot
+- name: "5. Dam bao dich vu Web khoi chay"
   ansible.builtin.service:
-    name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    name: "{{ web_srv }}"
     state: started
     enabled: true
 ...
