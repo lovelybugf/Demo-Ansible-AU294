@@ -15,9 +15,9 @@ Tài liệu này được tổng hợp từ toàn bộ kho tài liệu học t�
   * `inventory`: Tệp quản lý danh sách IP hoặc hostname của các máy đích. Hỗ trợ chia nhóm (`[dev]`), định nghĩa biến cụ thể cho nhóm (`[dev:vars]`), nhóm lồng nhóm (`[web:children]`), và khai báo phạm vi dải IP viết tắt (`192.168.1.[1:50]`).
   * Cú pháp YAML: Định dạng Playbook nghiêm ngặt thụt lề bằng khoảng trắng (spaces), tuyệt đối không dùng phím Tab. Bắt đầu file bằng `---` và kết thúc bằng `...`.
 * **Ứng dụng cụ thể trong bài Lab**:
-  * Được sử dụng trực tiếp để ping và verify môi trường thông qua tệp [test_playbook.yml](file:///d:/Demo-Ansible-AU294/test_playbook.yml).
-  * File [inventory](file:///d:/Demo-Ansible-AU294/inventory) được dùng trong **LAB 1** để xác lập môi trường kiểm thử `[dev]` và `[local]`.
-  * Các file cấu hình [ansible.cfg](file:///d:/Demo-Ansible-AU294/ansible.cfg) và [ansible-navigator.yml](file:///d:/Demo-Ansible-AU294/ansible-navigator.yml) được dùng xuyên suốt tất cả các bài Lab 1, 2, 3, 4 để tự động nâng quyền root (`become = True`) mà không cần truyền tham số thủ công.
+  * Được sử dụng trực tiếp để ping và verify môi trường thông qua tệp [test_playbook.yml](file:///e:/ansible/playbooks/test_playbook.yml).
+  * File [inventory](file:///e:/ansible/inventory) được dùng trong **LAB 1** để xác lập môi trường kiểm thử `[dev]` và `[local]`.
+  * Các file cấu hình [ansible.cfg](file:///e:/ansible/ansible.cfg) và [ansible-navigator.yml](file:///e:/ansible/ansible-navigator.yml) được dùng xuyên suốt tất cả các bài Lab 1, 2, 3, 4 để tự động nâng quyền root (`become = True`) mà không cần truyền tham số thủ công.
 
 ### Chương 3: Biến (Variables), Facts & Ansible Vault
 * **Lý thuyết chi tiết**:
@@ -79,9 +79,9 @@ Tài liệu này được tổng hợp từ toàn bộ kho tài liệu học t�
   Khi số lượng kỹ sư vận hành tăng lên, việc đảm bảo mọi Control Node (máy cá nhân, máy ảo kiểm thử, máy chủ staging) có cùng phiên bản Ansible Core, phiên bản Python và các Ansible Collections đi kèm là cực kỳ khó khăn. Để giải quyết vấn đề này, Red Hat giới thiệu **Automation Execution Environments (EE)** - là các Container Image đóng gói sẵn toàn bộ môi trường chạy chuẩn hóa. Kỹ sư chỉ cần dùng `ansible-navigator` để chạy playbook bên trong container cô lập đó, đảm bảo tính đồng bộ tuyệt đối từ môi trường phát triển (Dev) lên môi trường sản xuất (Prod).
 * **Kiến thức chủ chốt**:
   * Sử dụng Container Engine là `podman` (mặc định trên RHEL) hoặc `docker`.
-  * Định nghĩa tệp ảnh chạy trong [ansible-navigator.yml](file:///d:/Demo-Ansible-AU294/ansible-navigator.yml): `image: quay.io/ansible/creator-ee:latest` và thiết lập chính sách kéo ảnh `pull: policy: missing` để tăng tốc độ khởi chạy.
+  * Định nghĩa tệp ảnh chạy trong [ansible-navigator.yml](file:///e:/ansible/ansible-navigator.yml): `image: quay.io/ansible/creator-ee:latest` và thiết lập chính sách kéo ảnh `pull: policy: missing` để tăng tốc độ khởi chạy.
 * **Ứng dụng cụ thể trong bài Lab**:
-  * Được tích hợp sẵn xuyên suốt toàn bộ dự án qua tệp cấu hình [ansible-navigator.yml](file:///d:/Demo-Ansible-AU294/ansible-navigator.yml). Khi bạn chạy bất kỳ lệnh thực thi nào (như `ansible-navigator run site.yml`), hệ thống sẽ tự động tạo container Podman từ image `creator-ee`, mount thư mục dự án hiện tại vào thư mục `/workspaces/` trong container và thực hiện chạy cô lập playbook để tránh xung đột hệ thống.
+  * Được tích hợp sẵn xuyên suốt toàn bộ dự án qua tệp cấu hình [ansible-navigator.yml](file:///e:/ansible/ansible-navigator.yml). Khi bạn chạy bất kỳ lệnh thực thi nào (như `ansible-navigator run site.yml`), hệ thống sẽ tự động tạo container Podman từ image `creator-ee`, mount thư mục dự án hiện tại vào thư mục `/workspaces/` trong container và thực hiện chạy cô lập playbook để tránh xung đột hệ thống.
 
 ### Chương 7: Tái sử dụng code với Ansible Roles
 * **Lý thuyết chi tiết**:
@@ -380,3 +380,4 @@ web_root: /var/www/vhosts/localhost
     - role: ansible-httpd
 ```
 * **Lệnh chạy**: `ansible-navigator run site.yml`
+

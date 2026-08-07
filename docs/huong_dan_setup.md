@@ -147,9 +147,9 @@ EOF
    ```
    *(Nếu đăng nhập trực tiếp không hỏi mật khẩu là bạn đã cấu hình thành công)*.
 
-#### **6. Tạo tệp Playbook chạy thử `test_playbook.yml`:**
+#### **6. Tạo tệp Playbook chạy thử `playbooks/test_playbook.yml`:**
 ```bash
-cat << 'EOF' > test_playbook.yml
+cat << 'EOF' > playbooks/test_playbook.yml
 ---
 - name: Test Playbook - Verify Ansible Setup
   hosts: localhost
@@ -175,6 +175,6 @@ EOF
 ## 3. Chạy kiểm tra hệ thống
 Để chạy thử nghiệm playbook thông qua môi trường container vừa tạo, sử dụng câu lệnh:
 ```bash
-ansible-navigator run test_playbook.yml
+ansible-navigator run playbooks/test_playbook.yml
 ```
-* **Giải thích**: Lệnh này sẽ gọi `ansible-navigator`, khởi động một container Podman từ ảnh `creator-ee:latest`, mount thư mục dự án hiện tại vào trong container và thực thi playbook `test_playbook.yml` để kiểm tra.
+* **Giải thích**: Lệnh này sẽ gọi `ansible-navigator`, khởi động một container Podman từ ảnh `creator-ee:latest`, mount thư mục dự án hiện tại vào trong container và thực thi playbook `playbooks/test_playbook.yml` để kiểm tra.
