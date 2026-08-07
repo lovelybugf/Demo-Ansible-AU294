@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ansible Managed Web Node</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 40px; }
+        .card { background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 30px; max-width: 600px; margin: 0 auto; }
+        h1 { color: #e63946; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        td, th { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .footer { font-size: 0.85em; color: #777; margin-top: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Hello from Ansible Managed Host!</h1>
+        <p>This web page was dynamically generated and deployed using Ansible.</p>
+        
+        <table>
+            <tr>
+                <th>Thong so he thong</th>
+                <th>Gia tri thuc te</th>
+            </tr>
+            <tr>
+                <td>Target Hostname</td>
+                <td>{{ ansible_facts['hostname'] }}</td>
+            </tr>
+            <tr>
+                <td>IP Address</td>
+                <td>{{ ansible_facts['default_ipv4']['address'] }}</td>
+            </tr>
+            <tr>
+                <td>OS Family / Distro</td>
+                <td>{{ ansible_facts['os_family'] }} / {{ ansible_facts['distribution'] }}</td>
+            </tr>
+            <tr>
+                <td>Free System Memory</td>
+                <td>{{ ansible_facts['memfree_mb'] }} MB</td>
+            </tr>
+        </table>
+        
+        <div class="footer">
+            Managed by Ansible Control Plane (172.25.250.8)<br>
+            Last deployment: {{ ansible_date_time.iso8601 }}
+        </div>
+    </div>
+</body>
+</html>

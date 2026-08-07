@@ -1,0 +1,36 @@
+---
+# Tasks thuc thi cho web_server role
+
+- name: 1. Cai dat dich vu Web tuong ung voi OS Family
+  ansible.builtin.package:
+    name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    state: present
+
+- name: 2. Cau hinh Port cho dich vu Apache (RedHat)
+  ansible.builtin.lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen '
+    line: "Listen {{ http_port }}"
+  when: ansible_facts['os_family'] == 'RedHat'
+  notify: Restart Web Service
+
+- name: 3. Cau hinh Port cho dich vu Apache (Debian/Ubuntu)
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/ports.conf
+    regexp: '^Listen '
+    line: "Listen {{ http_port }}"
+  when: ansible_facts['os_family'] == 'Debian'
+  notify: Restart Web Service
+
+- name: 4. Tao trang chu index.html tinh voi thong tin tuy bien
+  ansible.builtin.copy:
+    content: "<html><body style='font-family:sans-serif; text-align:center;'><h1>{{ custom_index_text }}</h1><h3>Webmaster: {{ server_admin }}</h3><h3>Running on Port: {{ http_port }}</h3></body></html>\n"
+    dest: "/var/www/html/index.html"
+    mode: '0644'
+
+- name: 5. Dam bao dich vu Web duoc khoi chay va tu dong bat khi boot
+  ansible.builtin.service:
+    name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    state: started
+    enabled: true
+...

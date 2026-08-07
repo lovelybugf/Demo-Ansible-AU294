@@ -1,0 +1,51 @@
+---
+- name: Demo Chuong 8 - Automating Linux Administration Tasks (Sudo, User, Cron & Services)
+  hosts: dev
+  become: true
+  gather_facts: true
+
+  tasks:
+    # --------------------------------------------------------------------------
+    # 1. QUAN LY NGUOI DUNG VA QUYEN HẠN (USER & SUDOERS)
+    # --------------------------------------------------------------------------
+    - name: 1. Tao nhom nguoi dung 'sysops' tren he thong
+      ansible.builtin.group:
+        name: sysops
+        state: present
+
+    - name: 2. Tao nguoi dung 'operator' thuoc nhom 'sysops'
+      ansible.builtin.user:
+        name: operator
+        group: sysops
+        shell: /bin/bash
+        state: present
+
+    - name: 3. Cau hinh dac quyen Sudo khong mat khau cho nhom 'sysops' (Visudo validation)
+      ansible.builtin.copy:
+        content: "%sysops ALL=(ALL) NOPASSWD: ALL\n"
+        dest: /etc/sudoers.d/sysops
+        mode: '0440'
+        # Xac minh cu phap sudoers an toan truoc khi ghi de. %s se duoc thay bang file tam.
+        validate: /usr/sbin/visudo -cf %s
+
+    # --------------------------------------------------------------------------
+    # 2. LAP LICH TAC VU HETHONG (CRON JOBS)
+    # --------------------------------------------------------------------------
+    - name: 4. Cau hinh Cron job chay vao 0h00 hang ngay de xoa file tam trong /tmp
+      ansible.builtin.cron:
+        name: "Clean temp files weekly"
+        minute: "0"
+        hour: "0"
+        job: "find /tmp -type f -mtime +7 -delete"
+        user: root
+        state: present
+
+    # --------------------------------------------------------------------------
+    # 3. QUAN LY TRANG THAI DICH VU (SYSTEMD SERVICES)
+    # --------------------------------------------------------------------------
+    - name: 5. Dam bao dich vu SSH duoc khoi chay va enabled (sshd / ssh)
+      ansible.builtin.service:
+        name: "{{ 'ssh' if ansible_facts['os_family'] == 'Debian' else 'sshd' }}"
+        state: started
+        enabled: true
+...

@@ -1,0 +1,8 @@
+---
+# Handlers cho web_server role
+
+- name: Restart Web Service
+  ansible.builtin.service:
+    name: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    state: restarted
+...

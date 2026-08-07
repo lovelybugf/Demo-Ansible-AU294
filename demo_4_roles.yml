@@ -1,0 +1,13 @@
+---
+- name: Demo Chuong 7 - Modular Code voi Ansible Roles
+  hosts: dev
+  become: true
+  
+  # Ghi de cac bien mac dinh trong defaults/main.yml cua Role
+  vars:
+    http_port: 8080
+    custom_index_text: "WOW! Web Server nay duoc trien khai qua Ansible Role thanh cong!"
+
+  roles:
+    - role: web_server
+...

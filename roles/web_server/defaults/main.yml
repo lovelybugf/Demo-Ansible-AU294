@@ -1,0 +1,6 @@
+---
+# Bien mac dinh cho web_server role (Co do uu tien thap, de dang ghi de)
+http_port: 8080
+server_admin: "webmaster@{{ ansible_facts['fqdn'] | default('localhost') }}"
+custom_index_text: "Welcome to modular web server powered by Ansible Role!"
+...

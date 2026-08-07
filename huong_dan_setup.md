@@ -7,7 +7,8 @@ Tài liệu này hướng dẫn từng bước thiết lập môi trường ch�
 ## 1. Kiến trúc môi trường phát triển (Development Workflow)
 * **Windows (Máy thật)**: Dùng làm máy trạm viết code (sử dụng VS Code / Antigravity IDE) và lưu trữ mã nguồn cục bộ.
 * **GitHub (Trung gian)**: Dùng làm kho lưu trữ trung tâm để đồng bộ hóa mã nguồn giữa máy Windows và máy ảo.
-* **RHEL 10.2 VM (Máy ảo)**: Hoạt động như một **Ansible Control Node** (máy chạy lệnh thực tế). Máy ảo này được cài đặt Ansible, các công cụ phát triển và Podman để chạy playbooks.
+* **Control Node VM (172.25.250.8)**: Máy ảo RHEL 10.2 dùng để chạy lệnh Ansible (`ansible-navigator` hoặc `ansible-playbook`).
+* **Managed Host VM (172.25.250.20)**: Máy ảo con nhận và thực thi các lệnh từ Control Node qua kết nối SSH.
 
 ---
 
@@ -113,18 +114,40 @@ EOF
   * `mode: stdout`: Xuất kết quả log chạy trực tiếp ra màn hình terminal truyền thống thay vì mở giao diện tương tác dạng bảng vẽ (TUI), giúp dễ dàng copy log và theo dõi lỗi.
   * `enable: false` (ở mục playbook-artifact): Không tự động sinh ra các file log JSON tạm thời sau mỗi lần chạy thành công để tránh làm rác thư mục dự án.
 
-#### **4. Tạo tệp quản lý máy chủ mẫu `inventory`:**
+#### **4. Tạo tệp quản lý máy chủ `inventory`:**
 ```bash
 cat << 'EOF' > inventory
-[local]
+# Ansible static inventory file
+
+[control]
 localhost ansible_connection=local
+
+[dev]
+172.25.250.20 ansible_user=ducnam
 EOF
 ```
 * **Giải thích**:
-  * Khai báo một nhóm máy chủ tên là `[local]` chỉ chứa duy nhất máy `localhost` (chính nó).
-  * `ansible_connection=local`: Bảo Ansible chạy lệnh trực tiếp trên máy hiện tại thay vì cố gắng kết nối SSH vào chính nó.
+  * Nhóm `[control]`: chứa `localhost` với `ansible_connection=local` để Ansible chạy lệnh trực tiếp trên máy Control Node cho các tác vụ nội bộ.
+  * Nhóm `[dev]`: chứa địa chỉ IP của máy con `172.25.250.20` và chỉ định tài khoản kết nối SSH qua biến `ansible_user=ducnam`.
 
-#### **5. Tạo tệp Playbook chạy thử `test_playbook.yml`:**
+#### **5. Cấu hình xác thực SSH không mật khẩu (SSH Key-Based Authentication):**
+Để máy Control Plane (`172.25.250.8`) có thể kết nối và điều khiển được máy con (`172.25.250.20`) một cách tự động, bạn cần cấu hình SSH Trust:
+1. Tạo khóa SSH trên máy Control Plane (nếu chưa có):
+   ```bash
+   ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
+   ```
+2. Sao chép khóa công khai (public key) sang máy con:
+   ```bash
+   ssh-copy-id ducnam@172.25.250.20
+   ```
+   *(Nhập mật khẩu SSH của user `ducnam` trên máy con khi được hỏi)*.
+3. Thử kết nối kiểm tra:
+   ```bash
+   ssh ducnam@172.25.250.20
+   ```
+   *(Nếu đăng nhập trực tiếp không hỏi mật khẩu là bạn đã cấu hình thành công)*.
+
+#### **6. Tạo tệp Playbook chạy thử `test_playbook.yml`:**
 ```bash
 cat << 'EOF' > test_playbook.yml
 ---

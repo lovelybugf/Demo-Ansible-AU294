@@ -1,0 +1,47 @@
+---
+- name: Demo Chuong 3 - Variables, Facts & Ansible Vault
+  hosts: dev
+  gather_facts: true
+  vars:
+    app_name: "Ansible Demo Portal"
+    app_version: "2.4.0"
+    developer_name: "Duc Nam"
+
+  tasks:
+    - name: 1. Hien thi cac bien duoc dinh nghia trong Playbook
+      ansible.builtin.debug:
+        msg: "Ung dung: {{ app_name }} (Phien ban: {{ app_version }}) - Phat trien boi: {{ developer_name }}"
+
+    - name: 2. Thu thap va in ra cac thong tin thoi gian thuc (Facts) cua may con
+      ansible.builtin.debug:
+        msg: 
+          - "--- THONG TIN MAY CON (172.25.250.20) ---"
+          - "Hostname: {{ ansible_facts['hostname'] }}"
+          - "FQDN: {{ ansible_facts['fqdn'] }}"
+          - "He dieu hanh: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+          - "OS Family: {{ ansible_facts['os_family'] }}"
+          - "Dia chi IP cua: {{ ansible_facts['default_ipv4']['interface'] }} la {{ ansible_facts['default_ipv4']['address'] }}"
+          - "Dung luong RAM con trong: {{ ansible_facts['memfree_mb'] }} MB / {{ ansible_facts['memtotal_mb'] }} MB"
+
+    - name: 3. Demo goi bien trong chuoi ky tu (Jinja2 syntax)
+      ansible.builtin.debug:
+        msg: "Thu muc home cua user hien tai la: {{ ansible_facts['user_dir'] }}"
+
+# ==============================================================================
+# HUONG DAN SU DUNG ANSIBLE VAULT DE MA HOA TRONG CHUONG 3:
+# ==============================================================================
+# 1. Tao file chua thong tin nhay cam (vd: mat khau db-pass.yml):
+#    db_password: "MatKhauSieuBaoMat123!"
+#
+# 2. Ma hoa file db-pass.yml bang lenh:
+#    ansible-vault encrypt db-pass.yml
+#    (Nhap mat khau de ma hoa, vi du: 'redhat')
+#
+# 3. Goi file da ma hoa trong Playbook bang cach su dung 'vars_files':
+#    vars_files:
+#      - db-pass.yml
+#
+# 4. Chay Playbook va yeu cau nhap mat khau giai ma:
+#    ansible-playbook demo_2_variables.yml --ask-vault-pass
+# ==============================================================================
+...

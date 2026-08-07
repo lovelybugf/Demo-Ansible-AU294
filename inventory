@@ -1,8 +1,7 @@
 # Ansible static inventory file
 
-[dev]
-# Ubuntu target VM (modify ansible_user if the SSH account name is different)
-172.25.250.20 ansible_user=ducnam
-
-[local]
+[control]
 localhost ansible_connection=local
+
+[dev]
+172.25.250.20 ansible_user=ducnam

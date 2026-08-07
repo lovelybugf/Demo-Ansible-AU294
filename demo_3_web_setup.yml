@@ -1,0 +1,81 @@
+---
+- name: Demo Chuong 4 & 5 - Loops, Conditionals, Handlers, Files & Block/Rescue
+  hosts: dev
+  become: true
+  gather_facts: true
+
+  vars:
+    # Mac dinh cac duong dan va package theo OS family
+    web_pkg: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    web_srv: "{{ 'apache2' if ansible_facts['os_family'] == 'Debian' else 'httpd' }}"
+    web_dir: "/var/www/html"
+
+  tasks:
+    # --------------------------------------------------------------------------
+    # KHOI BLOCK 1: CAI DAT VA TRIEN KHAI WEB SERVER
+    # --------------------------------------------------------------------------
+    - name: Block 1 - Cai dat, cau hinh va khoi chay dich vu Web
+      block:
+        - name: 1. Cai dat dich vu web (Su dung loop de demo vong lap)
+          ansible.builtin.package:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - "{{ web_pkg }}"
+            - curl
+
+        - name: 2. Dam bao thu muc document root ton tai (Su dung module file)
+          ansible.builtin.file:
+            path: "{{ web_dir }}"
+            state: directory
+            mode: '0755'
+            owner: root
+            group: root
+
+        - name: 3. Deploy file index.html tu Jinja2 Template (Module template & Notify)
+          ansible.builtin.template:
+            src: templates/index.html.j2
+            dest: "{{ web_dir }}/index.html"
+            mode: '0644'
+          notify: Restart Web Service
+
+        - name: 4. Dam bao dich vu Web duoc khoi chay va bat cung he thong
+          ansible.builtin.service:
+            name: "{{ web_srv }}"
+            state: started
+            enabled: true
+
+    # --------------------------------------------------------------------------
+    # KHOI BLOCK 2: KIE'M TRA KET NOI VA BE'T LOI (BLOCK/RESCUE)
+    # --------------------------------------------------------------------------
+    - name: Block 2 - Kiem tra truy cap HTTP cuc bo (Health Check)
+      block:
+        - name: 5. Gui yeu cau HTTP GET den localhost
+          ansible.builtin.uri:
+            url: "http://127.0.0.1"
+            return_content: false
+            status_code: 200
+            timeout: 5
+          register: web_status
+
+        - name: 6. In thong bao neu truy cap thanh cong
+          ansible.builtin.debug:
+            msg: "SUCCESS: Web server da phan hoi tot voi status code 200!"
+
+      rescue:
+        - name: 7. Ghi log loi neu suc khoe Web check that bai
+          ansible.builtin.copy:
+            content: "Loi ket noi: Web server tren may con khong phan hoi! Chi tiet: {{ web_status | to_nice_json }}\n"
+            dest: "/tmp/web_error.log"
+            mode: '0644'
+
+        - name: 8. Canh bao loi ra man hinh
+          ansible.builtin.fail:
+            msg: "ERROR: Khong the ket noi den Web Server. Chi tiet loi duoc ghi tai /tmp/web_error.log tren may con."
+
+  handlers:
+    - name: Restart Web Service
+      ansible.builtin.service:
+        name: "{{ web_srv }}"
+        state: restarted
+...
