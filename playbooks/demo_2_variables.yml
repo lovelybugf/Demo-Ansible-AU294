@@ -6,6 +6,8 @@
     app_name: "Ansible Demo Portal"
     app_version: "2.4.0"
     developer_name: "Duc Nam"
+  vars_files:
+    - vars_vault.yml
 
   tasks:
     - name: 1. Hien thi cac bien duoc dinh nghia trong Playbook
@@ -57,6 +59,10 @@
           - "--- KIEM CHUNG LOCAL FACTS ---"
           - "Gia tri package: {{ ansible_facts['ansible_local']['custom']['webserver']['package'] }}"
           - "Gia tri service: {{ ansible_facts['ansible_local']['custom']['webserver']['service'] }}"
+
+    - name: "8. In ra bien mat khau da duoc giai ma tu Ansible Vault"
+      ansible.builtin.debug:
+        msg: "Mat khau database giai ma tu Vault thanh cong la: {{ vault_db_password }}"
 
 # ==============================================================================
 # HUONG DAN SU DUNG ANSIBLE VAULT DE MA HOA TRONG CHUONG 3:
