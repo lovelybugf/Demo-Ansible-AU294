@@ -30,14 +30,14 @@
     # --------------------------------------------------------------------------
     # DEMO LOCAL FACTS (CUSTOM FACTS CỦA CHƯƠNG 3)
     # --------------------------------------------------------------------------
-    - name: 4. Dam bao thu muc /etc/ansible/facts.d ton tai (Yeu cau become: true)
+    - name: "4. Dam bao thu muc /etc/ansible/facts.d ton tai (Yeu cau become: true)"
       ansible.builtin.file:
         path: /etc/ansible/facts.d
         state: directory
         mode: '0755'
       become: true
 
-    - name: 5. Tao file custom.fact tren may con (Yeu cau become: true)
+    - name: "5. Tao file custom.fact tren may con (Yeu cau become: true)"
       ansible.builtin.copy:
         content: |
           [webserver]
