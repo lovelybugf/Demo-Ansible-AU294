@@ -27,6 +27,37 @@
       ansible.builtin.debug:
         msg: "Thu muc home cua user hien tai la: {{ ansible_facts['user_dir'] }}"
 
+    # --------------------------------------------------------------------------
+    # DEMO LOCAL FACTS (CUSTOM FACTS CỦA CHƯƠNG 3)
+    # --------------------------------------------------------------------------
+    - name: 4. Dam bao thu muc /etc/ansible/facts.d ton tai (Yeu cau become: true)
+      ansible.builtin.file:
+        path: /etc/ansible/facts.d
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: 5. Tao file custom.fact tren may con (Yeu cau become: true)
+      ansible.builtin.copy:
+        content: |
+          [webserver]
+          package = httpd
+          service = httpd
+        dest: /etc/ansible/facts.d/custom.fact
+        mode: '0644'
+      become: true
+
+    - name: 6. Reload facts de Ansible cap nhat bien local ngay lap tuc
+      ansible.builtin.setup:
+        filter: ansible_local
+
+    - name: 7. In ra gia tri Local Fact tu file custom.fact de kiem chung
+      ansible.builtin.debug:
+        msg:
+          - "--- KIEM CHUNG LOCAL FACTS ---"
+          - "Gia tri package: {{ ansible_facts['ansible_local']['custom']['webserver']['package'] }}"
+          - "Gia tri service: {{ ansible_facts['ansible_local']['custom']['webserver']['service'] }}"
+
 # ==============================================================================
 # HUONG DAN SU DUNG ANSIBLE VAULT DE MA HOA TRONG CHUONG 3:
 # ==============================================================================
