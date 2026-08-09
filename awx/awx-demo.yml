@@ -1,0 +1,32 @@
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx-demo
+spec:
+  service_type: nodeport
+  web_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+  task_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+  ee_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+  redis_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+  rsyslog_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+  init_container_resource_requirements:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+...

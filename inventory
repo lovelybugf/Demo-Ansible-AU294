@@ -5,3 +5,4 @@ localhost ansible_connection=local
 
 [dev]
 172.25.250.20 ansible_user=ducnam
+172.25.250.30 ansible_user=ducnam
