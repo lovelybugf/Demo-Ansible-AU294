@@ -14,7 +14,46 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 2: Cấu hình Máy chủ Sẵn sàng với Ansible (Control Node & Managed Host)
+## Slide 2: Ansible là gì & Dùng làm gì?
+*   **Tiêu đề**: Ansible là gì và được dùng làm gì?
+*   **Visuals**: Sơ đồ 3 khối chức năng lớn kết nối với nhau:
+    1. `Configuration Management` (Quản lý cấu hình)
+    2. `Application Deployment` (Triển khai ứng dụng)
+    3. `Orchestration / Cloud / Network` (Điều phối hệ thống / Thiết bị mạng)
+*   **Slide Content**:
+    *   **Định nghĩa**: Ansible là công cụ tự động hóa hạ tầng dưới dạng mã (Infrastructure as Code - IaC) giúp đơn giản hóa các tác vụ quản trị IT phức tạp.
+    *   **Quản lý cấu hình**: Thiết lập hệ điều hành, cài đặt và cập nhật phần mềm, đồng bộ cấu hình trên hàng trăm máy chủ cùng lúc.
+    *   **Triển khai ứng dụng (CI/CD)**: Tự động hóa quy trình deploy code từ môi trường test lên production, khởi chạy ứng dụng không gián đoạn (no-downtime).
+    *   **Điều phối (Orchestration)**: Định nghĩa và quản lý các luồng công việc phức tạp liên kết nhiều thành phần (Ví dụ: tắt Load Balancer ➔ nâng cấp Database ➔ cập nhật Web Server ➔ bật lại Load Balancer).
+    *   **Mở rộng thiết bị mạng & Cloud**: Tự động cấu hình Router/Switch và khởi tạo tài nguyên đám mây (AWS, Azure, GCP...).
+*   **Speaker Notes**:
+    > *"Đầu tiên, chúng ta cần trả lời câu hỏi cốt lõi: Ansible là gì và được sử dụng để làm gì trong thực tế?
+    > Ansible là một nền tảng tự động hóa IT mạnh mẽ dưới dạng mã (IaC). Thay vì một quản trị viên hệ thống phải gõ lệnh thủ công trên từng máy chủ, Ansible cho phép chúng ta mô tả trạng thái mong muốn của hệ thống bằng code và tự động hóa toàn bộ.
+    > 
+    > Ứng dụng thực tế của nó trải dài trên 4 lĩnh vực chính: Quản lý cấu hình hệ điều hành đồng loạt; Tự động hóa quy trình triển khai ứng dụng; Điều phối luồng công việc phức tạp giữa nhiều máy chủ khác nhau; Và cuối cùng là cấu hình tự động cho các thiết bị mạng cũng như hạ tầng điện toán đám mây."*
+
+---
+
+## Slide 3: Ưu điểm Vượt trội của Ansible (Why Ansible?)
+*   **Tiêu đề**: Tại sao chọn Ansible? Các Ưu điểm Vượt trội
+*   **Visuals**: Biểu đồ so sánh 3 ô cột nổi bật chứa các biểu tượng:
+    *   `Không cần Agent` (Agentless)
+    *   `Tính lũy đẳng` (Idempotent)
+    *   `Dễ đọc hiểu` (Human-Readable YAML)
+*   **Slide Content**:
+    *   **Không cần Agent (Agentless)**: Không tốn tài nguyên hệ thống (RAM/CPU) để chạy agent trên máy đích. Không cần bảo trì hay nâng cấp agent. Kết nối an toàn qua SSH/WinRM tiêu chuẩn.
+    *   **Tính lũy đẳng (Idempotency)**: Đảm bảo an toàn tuyệt đối. Chạy một playbook nhiều lần luôn đem lại cùng một kết quả. Ansible chỉ thực hiện thay đổi khi phát hiện cấu hình thực tế lệch khỏi thiết kế mong muốn.
+    *   **Cú pháp YAML trực quan**: Dễ đọc, dễ hiểu đối với cả Quản trị viên hệ thống lẫn Lập trình viên. Không yêu cầu kỹ năng lập trình nâng cao (như Ruby ở Chef hay Puppet).
+    *   **Khả năng tái sử dụng & Đóng gói**: Dễ dàng module hóa mã nguồn qua cấu trúc thư mục quy chuẩn (Ansible Roles) và mở rộng qua Collections.
+*   **Speaker Notes**:
+    > *"Vậy những ưu điểm vượt trội nào đã giúp Ansible trở thành lựa chọn hàng đầu trên toàn cầu?
+    > - Thứ nhất, thiết kế Agentless: Không cần cài đặt bất kỳ phần mềm agent nào lên máy đích giúp triển khai lập tức và loại bỏ rủi ro bảo mật từ các lỗ hổng của agent.
+    > - Thứ hai, tính lũy đẳng (Idempotency): Đây là tính năng an toàn tối thượng của IaC. Nếu bạn chạy playbook cấu hình 10 lần, Ansible chỉ thay đổi ở lần thứ nhất; 9 lần sau nó kiểm tra thấy hệ thống đã đúng chuẩn và tự động bỏ qua, tránh việc làm gián đoạn dịch vụ đang chạy.
+    > - Thứ ba, ngôn ngữ YAML cực kỳ trực quan, giúp tất cả các thành viên trong dự án dễ dàng đọc hiểu và cùng tham gia vào quá trình phát triển tự động hóa."*
+
+---
+
+## Slide 4: Cấu hình Máy chủ Sẵn sàng với Ansible (Control Node & Managed Host)
 *   **Tiêu đề**: Thiết lập Môi trường Tự động hóa Agentless
 *   **Visuals**: Sơ đồ kết nối giữa Control Node (ở giữa) và các Managed Host (xung quanh) thông qua SSH.
 *   **Slide Content**:
@@ -34,7 +73,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 3: Cấu trúc Thư mục Dự án Ansible Chuẩn hóa
+## Slide 5: Cấu trúc Thư mục Dự án Ansible Chuẩn hóa
 *   **Tiêu đề**: Tổ chức Thư mục Dự án theo Best Practices
 *   **Visuals**: Cây thư mục dạng văn bản minh họa:
     ```text
@@ -56,7 +95,8 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 4: Viết Mã nguồn Ansible (Playbook & YAML Syntax)
+## Slide 6: Viết Mã nguồn Ansible (Playbook & YAML Syntax)
+
 *   **Tiêu đề**: Cấu trúc của một Playbook Ansible
 *   **Visuals**: Đoạn mã Playbook ví dụ ngắn gọn, sử dụng màu sắc phân biệt các phần:
     ```yaml
@@ -81,7 +121,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 5: Vận hành Hiện đại với Ansible Navigator
+## Slide 7: Vận hành Hiện đại với Ansible Navigator
 *   **Tiêu đề**: Trải nghiệm Vận hành Hiện đại bằng Ansible Navigator
 *   **Visuals**: Bảng so sánh trực quan giữa Ansible Engine truyền thống và Ansible Navigator:
     | Tính năng | Ansible Engine (CLI) | Ansible Navigator |
@@ -100,7 +140,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 6: Quản lý và Tái sử dụng Code: Import vs Include
+## Slide 8: Quản lý và Tái sử dụng Code: Import vs Include
 *   **Tiêu đề**: Phân tích Cơ chế Tái sử dụng Mã nguồn
 *   **Visuals**: Hình ảnh động minh họa thời điểm phân giải mã nguồn:
     *   `import_*` (Static) ➔ Ghép nối tại thời điểm phân tích Playbook (Parsing time).
@@ -121,7 +161,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 7: Trái tim của Tự động hóa: Ansible Roles
+## Slide 9: Trái tim của Tự động hóa: Ansible Roles
 *   **Tiêu đề**: Khái niệm & Sức mạnh của Ansible Roles
 *   **Visuals**: Mô hình hóa: Một Playbook chính cực kỳ ngắn gọn gọi các Roles độc lập (Role: Web Server, Role: Database, Role: Hardening).
 *   **Slide Content**:
@@ -140,7 +180,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 8: Cấu trúc Thư mục Chuẩn của một Ansible Role (Đi sâu chi tiết)
+## Slide 10: Cấu trúc Thư mục Chuẩn của một Ansible Role (Đi sâu chi tiết)
 *   **Tiêu đề**: Giải phẫu Thư mục của một Role
 *   **Visuals**: Sơ đồ cây thư mục chi tiết của một Role tiêu chuẩn:
     ```text
@@ -175,7 +215,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 9: Thực chiến: Cách gọi và Thứ tự Thực thi Role
+## Slide 11: Thực chiến: Cách gọi và Thứ tự Thực thi Role
 *   **Tiêu đề**: Triển khai Role vào Playbook Thực tế
 *   **Visuals**: Mã nguồn Playbook mẫu gọi Role và sơ đồ thứ tự chạy:
     ```yaml
@@ -207,7 +247,7 @@ Kịch bản này được thiết kế để bạn làm slide thuyết trình c
 
 ---
 
-## Slide 10: Tổng kết & Hỏi đáp (Q&A)
+## Slide 12: Tổng kết & Hỏi đáp (Q&A)
 *   **Tiêu đề**: Tóm tắt các Điểm cốt lõi
 *   **Visuals**: Bản đồ tư duy (Mindmap) kết nối:
     `Thiết lập máy chủ` ➔ `Cấu trúc dự án` ➔ `Playbook (YAML)` ➔ `Navigator` ➔ `Import/Include` ➔ `Roles`.
