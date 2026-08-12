@@ -11,109 +11,142 @@ graph TD
     A[Cụm K8s 2 Nodes Sạch: Ready] --> B[Bước 1: Kéo trước các ảnh container để tránh timeout]
     B --> C[Bước 2: Cài đặt StorageClass local-path mặc định]
     C --> D[Bước 3: Triển khai AWX Operator offline]
-    D --> E[Bước 4: Triển khai AWX Instance tối ưu RAM]
-    E --> F[Bước 5: Lấy mật khẩu và đăng nhập giao diện Web]
-```
+    D --> E[Bước## Triển khai trực tiếp trên Master Node (Có Internet)
 
----
-
-## Thư mục Tài nguyên trên Master Node
-
-Toàn bộ các tệp tin cấu hình đã được sao chép sẵn vào Master Node tại đường dẫn:
-📁 **`/home/ducnam/awx_reinstall/`**
-
-Vui lòng đăng nhập SSH vào máy Master bằng tài khoản `ducnam` để thực hiện các bước tiếp theo:
+Vui lòng đăng nhập SSH vào máy Master bằng tài khoản `ducnam`:
 ```bash
 ssh ducnam@172.25.250.20
 # Mật khẩu: 1
-cd /home/ducnam/awx_reinstall/
 ```
 
 ---
 
-## Hướng dẫn cài đặt từng bước
+## Hướng dẫn cài đặt từng bước từ đầu
 
-### Bước 1: Chờ hoàn thành kéo trước (Pre-pull) toàn bộ ảnh container
-Tôi đang tự động cho chạy ngầm kịch bản `pre_pull_images.sh` để kéo sẵn toàn bộ 8 ảnh container cấu thành nên AWX về local của cả Master và Worker.
-* **Tác dụng**: Giúp các pod khởi chạy ngay lập tức khi apply cấu hình, tránh hoàn toàn lỗi kẹt `ImagePullBackOff` hoặc lỗi `Timeout` do tải ảnh chậm từ Internet.
-* **Cách kiểm tra trạng thái kéo ảnh** (chạy trên Master):
-  ```bash
-  sudo crictl images
-  ```
-  *(Khi thấy danh sách có đủ các ảnh `awx`, `awx-operator`, `postgres`, `redis`, `local-path-provisioner`... là có thể tiến hành bước tiếp theo).*
+### Bước 1: Clone repo AWX Operator trực tiếp trên Master VM
+Chạy các lệnh sau để tải bộ mã nguồn AWX Operator (phiên bản ổn định `2.19.1`):
+```bash
+# 1. Xóa thư mục cũ (nếu có) và tải repo từ GitHub
+rm -rf /home/ducnam/awx
+git clone https://github.com/ansible/awx-operator.git /home/ducnam/awx
 
----
-
-### Bước 2: Cài đặt StorageClass mặc định cho cụm K8s
-AWX yêu cầu một StorageClass mặc định để tự động cấp phát ổ cứng (PVC) cho cơ sở dữ liệu Postgres.
-1. Triển khai Rancher Local Path Storage:
-   ```bash
-   kubectl apply -f local-path-storage.yaml
-   ```
-2. Đặt `local-path` làm StorageClass mặc định của hệ thống:
-   ```bash
-   kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-   ```
-3. Kiểm tra trạng thái StorageClass:
-   ```bash
-   kubectl get sc
-   ```
-   *(Xác nhận class `local-path` hiển thị và có nhãn `(default)` bên cạnh).*
+# 2. Chuyển vào thư mục và chọn tag 2.19.1
+cd /home/ducnam/awx
+git checkout tags/2.19.1
+```
 
 ---
 
-### Bước 3: Triển khai AWX Operator (Trình điều phối)
-AWX Operator chịu trách nhiệm quản lý vòng đời và tự động hóa việc triển khai các Pod AWX.
-1. Tạo namespace `awx` cho dự án:
+### Bước 2: Tạo các tệp cấu hình triển khai
+Chạy các lệnh sau trực tiếp trên Master VM để tạo cấu hình cài đặt tối ưu tài nguyên cho cụm lab:
+
+1. **Tạo tệp `kustomization.yaml`**:
    ```bash
-   kubectl create namespace awx
+   cat << 'EOF' > kustomization.yaml
+   apiVersion: kustomize.config.k8s.io/v1beta1
+   kind: Kustomization
+   resources:
+     - config/default
+     - awx-demo.yml
+
+   images:
+     - name: quay.io/ansible/awx-operator
+       newTag: 2.19.1
+     - name: gcr.io/kubebuilder/kube-rbac-proxy
+       newName: registry.k8s.io/kubebuilder/kube-rbac-proxy
+       newTag: v0.15.0
+
+   namespace: awx
+   EOF
    ```
-2. Áp dụng cấu hình Kustomize cục bộ để triển khai Operator:
+
+2. **Tạo tệp `awx-demo.yml`** (Tối ưu tài nguyên RAM/CPU):
    ```bash
-   kubectl apply -k .
+   cat << 'EOF' > awx-demo.yml
+   ---
+   apiVersion: awx.ansible.com/v1beta1
+   kind: AWX
+   metadata:
+     name: awx-demo
+   spec:
+     service_type: nodeport
+     nodeport_port: 32240
+     postgres_storage_class: local-path
+     web_resource_requirements:
+       requests:
+         cpu: 10m
+         memory: 32Mi
+     task_resource_requirements:
+       requests:
+         cpu: 10m
+         memory: 32Mi
+     ee_resource_requirements:
+       requests:
+         cpu: 10m
+         memory: 32Mi
+     redis_resource_requirements:
+       requests:
+         cpu: 10m
+         memory: 32Mi
+     rsyslog_resource_requirements:
+       requests:
+         cpu: 10m
+         memory: 32Mi
+     init_container_resource_requirements:
+       requests:
+         cpu: 10m
+         memory: 32Mi
+   ...
+   EOF
    ```
-3. Theo dõi trạng thái khởi động của Pod Operator:
+
+3. **Tải tệp cài đặt StorageClass cục bộ (`local-path-storage.yaml`)**:
+   ```bash
+   curl -L -o local-path-storage.yaml https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.37/deploy/local-path-storage.yaml
+   ```
+
+---
+
+### Bước 3: Thiết lập StorageClass mặc định cho cụm K8s
+Để cơ sở dữ liệu của AWX tự động cấp phát ổ cứng động:
+```bash
+# 1. Triển khai Rancher Local Path Storage
+kubectl apply -f local-path-storage.yaml
+
+# 2. Thiết lập local-path làm mặc định của cụm
+kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+# 3. Kiểm tra trạng thái StorageClass
+kubectl get sc
+```
+*(Xác nhận sc `local-path` có hậu tố `(default)` bên cạnh).*
+
+---
+
+### Bước 4: Triển khai AWX Operator & Instance
+```bash
+# 1. Tạo namespace riêng cho AWX
+kubectl create namespace awx
+
+# 2. Sử dụng Kustomize để triển khai Operator & Instance
+kubectl apply -k .
+```
+
+---
+
+### Bước 5: Theo dõi trạng thái và lấy mật khẩu đăng nhập
+1. **Theo dõi các Pod khởi chạy**:
    ```bash
    kubectl get pods -n awx -w
    ```
-   *(Đợi cho đến khi pod `awx-operator-controller-manager-...` chuyển sang trạng thái `Running` và cột `READY` hiển thị `2/2`).*
+   *Quá trình này sẽ tải các ảnh container từ internet và khởi chạy lần lượt các dịch vụ (`postgres`, `redis`, `web`, `task`).*
 
----
-
-### Bước 4: Triển khai AWX Instance (Ứng dụng AWX Web/Task)
-Sau khi Operator hoạt động ổn định, tiến hành triển khai các pod dịch vụ chính của AWX.
-1. Áp dụng tệp cấu hình đã được tối ưu hóa tài nguyên RAM/CPU cho cụm lab:
+2. **Lấy mật khẩu đăng nhập quản trị**:
    ```bash
-   kubectl apply -f awx-demo.yml
+   kubectl get secret awx-demo-admin-password -n awx -o jsonpath="{.data.password}" | base64 --decode ; echo
    ```
-2. Theo dõi tiến trình tạo các pod dịch vụ:
-   ```bash
-   kubectl get pods -n awx -w
-   ```
-   *Quá trình này sẽ lần lượt sinh ra các pod:*
-   * `awx-demo-postgres-15-0`: Cơ sở dữ liệu Postgres (Sử dụng PV tạo động từ SC local-path).
-   * `awx-demo-redis-...`: Hàng đợi cache.
-   * `awx-demo-migration-...`: Pod chạy migration dữ liệu (sẽ tự động biến mất khi hoàn thành).
-   * `awx-demo-web-...` & `awx-demo-task-...`: Giao diện chính và công cụ chạy task.
 
-3. Theo dõi log di chuyển dữ liệu (Migration) để biết khi nào hoàn thành:
-   ```bash
-   kubectl logs -f job/awx-demo-migration-24.6.1 -n awx
-   ```
-   *(Khi log kết thúc bằng thông báo thành công và pod chuyển sang trạng thái Completed).*
+3. **Truy cập Giao diện Web**:
+   Mở trình duyệt trên máy Windows và truy cập địa chỉ:
+   👉 **URL**: **http://172.25.250.20:32240** (Tài khoản: `admin`).
 
----
-
-### Bước 5: Lấy mật khẩu và đăng nhập giao diện Web
-
-1. **Địa chỉ truy cập**:
-   Mở trình duyệt trên máy Windows và truy cập theo IP của node bất kỳ (khuyên dùng Master):
-   👉 **URL**: http://172.25.250.20:32240 (Đã cố định NodePort `32240`).
-
-2. **Tài khoản đăng nhập**:
-   * Username: `admin`
-   * Mật khẩu đăng nhập (trích xuất tự động từ K8s Secret):
-     ```bash
-     kubectl get secret awx-demo-admin-password -n awx -o jsonpath="{.data.password}" | base64 --decode ; echo
-     ```
-     *(Dán lệnh này vào terminal Master để nhận chuỗi mật khẩu giải mã).*

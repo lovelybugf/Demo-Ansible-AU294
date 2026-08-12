@@ -1,0 +1,6 @@
+---
+# Cac task chung dung de setup ban dau cho moi node (neu can)
+- name: Hien thi thong tin he dieu hanh cua Node
+  ansible.builtin.debug:
+    msg: "Node running on {{ ansible_distribution }} {{ ansible_distribution_version }}"
+...

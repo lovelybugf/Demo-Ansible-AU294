@@ -5,6 +5,8 @@ metadata:
   name: awx-demo
 spec:
   service_type: nodeport
+  nodeport_port: 32240
+  postgres_storage_class: local-path
   web_resource_requirements:
     requests:
       cpu: 10m
