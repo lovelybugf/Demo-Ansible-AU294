@@ -49,6 +49,7 @@
           kind: AWX
           metadata:
             name: awx-demo
+            namespace: awx
           spec:
             service_type: nodeport
             postgres_storage_class: local-path
@@ -63,7 +64,6 @@
           kind: Kustomization
           resources:
             - github.com/ansible/awx-operator/config/default?ref={{ awx_version }}
-            - awx-demo.yml
 
           images:
             - name: quay.io/ansible/awx-operator
@@ -74,11 +74,22 @@
 
           namespace: awx
 
-    - name: 6. Deploy AWX Operator va AWX Instance
+    - name: 6. Deploy AWX Operator (Cai dat Operator va CRD)
       ansible.builtin.command:
         cmd: kubectl apply -k {{ deploy_dir }}/
       register: kustomize_apply
       changed_when: "'created' in kustomize_apply.stdout or 'configured' in kustomize_apply.stdout"
+
+    - name: 6.1 Cho doi CRD cua AWX duoc dang ky va thiet lap (established) tren K8s
+      ansible.builtin.command:
+        cmd: kubectl wait --for=condition=established crd/awxs.awx.ansible.com --timeout=60s
+      changed_when: false
+
+    - name: 6.2 Deploy AWX Instance CR
+      ansible.builtin.command:
+        cmd: kubectl apply -f {{ deploy_dir }}/awx-demo.yml
+      register: awx_instance_apply
+      changed_when: "'created' in awx_instance_apply.stdout or 'configured' in awx_instance_apply.stdout"
 
     - name: 7. Cho 30 giay de he thong bat dau khoi tao pod
       ansible.builtin.pause:
