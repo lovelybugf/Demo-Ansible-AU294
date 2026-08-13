@@ -11,8 +11,8 @@
       ansible.builtin.blockinfile:
         path: /etc/hosts
         block: |
-          172.25.250.20 k8s-master
-          172.25.250.30 k8s-worker
+          10.1.68.140 k8s-master
+          10.1.68.141 k8s-worker
         state: present
 
     - name: Cấu hình Sudo không mật khẩu cho user ducnam
@@ -179,7 +179,7 @@
 
     - name: Chạy kubeadm init trên Master Node
       ansible.builtin.command:
-        cmd: kubeadm init --apiserver-advertise-address=172.25.250.20 --pod-network-cidr=192.168.0.0/16
+        cmd: kubeadm init --apiserver-advertise-address=10.1.68.140 --pod-network-cidr=192.168.0.0/16
       register: kubeadm_init
       when: not kubeadmin_stat.stat.exists
 
