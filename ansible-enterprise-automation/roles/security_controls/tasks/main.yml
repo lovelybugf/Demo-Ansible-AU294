@@ -1,0 +1,9 @@
+---
+- name: Thuc thi cau hinh USB Storage Control
+  ansible.builtin.include_tasks: usb_control.yml
+  when: usb_action_required | default(false)
+
+- name: Thuc thi quan ly nhom Active Directory
+  ansible.builtin.include_tasks: ad_group_membership.yml
+  when: ad_group_action_required | default(false)
+...

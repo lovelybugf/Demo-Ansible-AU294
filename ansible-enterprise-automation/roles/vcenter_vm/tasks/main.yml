@@ -1,0 +1,4 @@
+---
+- name: Thuc thi Clone/Tao may ao vCenter
+  ansible.builtin.include_tasks: create_vm.yml
+...

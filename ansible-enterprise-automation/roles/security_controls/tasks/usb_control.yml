@@ -1,0 +1,8 @@
+---
+- name: Cau hinh khoa hoac mo cong USB cho may Windows
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR
+    name: Start
+    data: "{{ usb_allow | default(true) | ternary(3, 4) }}"
+    type: dword
+...

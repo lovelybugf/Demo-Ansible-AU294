@@ -1,0 +1,16 @@
+---
+- name: Tao Virtual Network va Subnet tren Azure
+  azure.azcollection.azure_rm_virtualnetwork:
+    client_id: "{{ azure_client_id }}"
+    client_secret: "{{ azure_client_secret }}"
+    tenant_id: "{{ azure_tenant_id }}"
+    subscription_id: "{{ azure_subscription_id }}"
+    resource_group: "{{ azure_resource_group }}"
+    name: "{{ azure_vnet_name }}"
+    address_prefixes:
+      - "{{ azure_vnet_cidr | default('10.0.0.0/16') }}"
+    subnets:
+      - name: "{{ azure_subnet_name | default('subnet-1') }}"
+        address_prefix: "{{ azure_subnet_cidr | default('10.0.1.0/24') }}"
+    state: present
+...

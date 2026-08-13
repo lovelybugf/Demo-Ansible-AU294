@@ -1,0 +1,23 @@
+---
+# Thong tin ket noi VMware vCenter API
+vcenter_hostname: "vcenter.company.local"
+vcenter_username: "administrator@vsphere.local"
+vcenter_password: "password_secret"
+vcenter_validate_certs: false
+
+# Cấu hình cụm mặc định
+vcenter_datacenter: "Datacenter-HN"
+vcenter_cluster: "Cluster-PROD"
+vcenter_datastore: "SAN-Storage-01"
+vcenter_folder: "/VMs"
+
+# Cấu hình cấu hình VM mẫu
+vm_name: "vm-app-temp"
+vm_template_name: "ubuntu-22.04-template"
+vm_disk_size_gb: 50
+vm_ram_mb: 4096
+vm_vcpu: 2
+vm_network_name: "VM-Network-VLAN10"
+vm_ip_address: "172.16.10.50"
+vm_gateway: "172.16.10.1"
+...

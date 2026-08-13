@@ -1,0 +1,9 @@
+---
+- name: Them hoac Xoa thanh vien khoi nhom AD Group
+  microsoft.ad.group:
+    name: "{{ ad_group_name }}"
+    members:
+      add: "{{ ad_members_to_add | default(omit) }}"
+      remove: "{{ ad_members_to_remove | default(omit) }}"
+    state: present
+...

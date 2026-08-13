@@ -1,0 +1,11 @@
+---
+- name: Tao Resource Group tren Azure
+  azure.azcollection.azure_rm_resourcegroup:
+    client_id: "{{ azure_client_id }}"
+    client_secret: "{{ azure_client_secret }}"
+    tenant_id: "{{ azure_tenant_id }}"
+    subscription_id: "{{ azure_subscription_id }}"
+    name: "{{ azure_resource_group }}"
+    location: "{{ azure_location | default('southeastasia') }}"
+    state: present
+...

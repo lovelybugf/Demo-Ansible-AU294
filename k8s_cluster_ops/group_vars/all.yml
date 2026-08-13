@@ -1,4 +1,0 @@
----
-# Bien dung chung cho tat ca cac host trong cum
-ansible_python_interpreter: /usr/bin/python3
-...

@@ -1,0 +1,7 @@
+---
+- name: Thuc thi cac kịch ban ngoai le Bao mat & IT Ops
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: ../roles/security_controls
+...

@@ -1,0 +1,8 @@
+---
+# Entrypoint cho Role Khoi tao Ha tang Azure
+- name: Thuc thi khoi tao Resource Group
+  ansible.builtin.include_tasks: resource_group.yml
+
+- name: Thuc thi khoi tao Virtual Network & Subnet
+  ansible.builtin.include_tasks: vnet.yml
+...

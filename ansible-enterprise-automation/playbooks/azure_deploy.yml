@@ -1,0 +1,8 @@
+---
+- name: Trien khai ha tang Azure Cloud
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: ../roles/azure_infra
+...
