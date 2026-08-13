@@ -1,0 +1,126 @@
+---
+- name: Trien khai AWX bang AWX Operator tren Kubernetes
+  hosts: masters
+  become: true
+  become_user: ducnam
+
+  vars:
+    awx_version: "2.19.1"
+    deploy_dir: "~/awx_deploy"
+    rbac_proxy_image: "registry.k8s.io/kubebuilder/kube-rbac-proxy"
+    rbac_proxy_tag: "v0.15.0"
+
+  tasks:
+    - name: 1. Tao thu muc tam de luu cau hinh deploy AWX
+      ansible.builtin.file:
+        path: "{{ deploy_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: 2. Kiem tra xem StorageClass mac dinh da co chua
+      ansible.builtin.shell:
+        cmd: kubectl get storageclass -o json
+      register: sc_check
+      changed_when: false
+
+    - name: 3. Cai dat Rancher Local-Path-Provisioner lam StorageClass mac dinh (neu chua co)
+      block:
+        - name: 3.1 Apply local-path-storage manifest
+          ansible.builtin.command:
+            cmd: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+          register: lpp_apply
+          changed_when: "'created' in lpp_apply.stdout or 'configured' in lpp_apply.stdout"
+
+        - name: 3.2 Dat local-path lam StorageClass mac dinh (default)
+          ansible.builtin.command:
+            cmd: kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+          register: lpp_patch
+          changed_when: "'patched' in lpp_patch.stdout"
+      when: (sc_check.stdout | from_json).items | length == 0
+
+    - name: 4. Khoi tao file dinh nghia AWX Instance (awx-demo.yml)
+      ansible.builtin.copy:
+        dest: "{{ deploy_dir }}/awx-demo.yml"
+        mode: '0644'
+        content: |
+          ---
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: awx-demo
+          spec:
+            service_type: nodeport
+            postgres_storage_class: local-path
+            web_extra_volume_mounts: []
+
+    - name: 5. Khoi tao file kustomization.yaml voi override image de tranh loi ImagePullBackOff
+      ansible.builtin.copy:
+        dest: "{{ deploy_dir }}/kustomization.yaml"
+        mode: '0644'
+        content: |
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - github.com/ansible/awx-operator/config/default?ref={{ awx_version }}
+            - awx-demo.yml
+
+          images:
+            - name: quay.io/ansible/awx-operator
+              newTag: {{ awx_version }}
+            - name: gcr.io/kubebuilder/kube-rbac-proxy
+              newName: {{ rbac_proxy_image }}
+              newTag: {{ rbac_proxy_tag }}
+
+          namespace: awx
+
+    - name: 6. Deploy AWX Operator va AWX Instance
+      ansible.builtin.command:
+        cmd: kubectl apply -k {{ deploy_dir }}/
+      register: kustomize_apply
+      changed_when: "'created' in kustomize_apply.stdout or 'configured' in kustomize_apply.stdout"
+
+    - name: 7. Cho 30 giay de he thong bat dau khoi tao pod
+      ansible.builtin.pause:
+        seconds: 30
+
+    - name: 8. Cho doi pod cua awx-operator-controller-manager san sang (Ready)
+      ansible.builtin.command:
+        cmd: kubectl wait --for=condition=Ready pod -l control-plane=controller-manager -n awx --timeout=300s
+      register: operator_wait
+      changed_when: false
+
+    - name: 9. Cho doi qua trinh Migration va tao Secret admin password hoan tat (co the mat 3-5 phut)
+      ansible.builtin.command:
+        cmd: kubectl get secret awx-demo-admin-password -n awx
+      register: secret_check
+      until: secret_check.rc == 0
+      retries: 30
+      delay: 15
+      ignore_errors: true
+      changed_when: false
+
+    - name: 10. Lay NodePort va mat khau admin dang nhap AWX
+      block:
+        - name: 10.1 Lay NodePort cua dich vu Web AWX
+          ansible.builtin.shell:
+            cmd: kubectl get svc awx-demo-service -n awx -o jsonpath='{.spec.ports[0].nodePort}'
+          register: nodeport_res
+          changed_when: false
+
+        - name: 10.2 Doc mat khau Admin tu Secret K8s
+          ansible.builtin.shell:
+            cmd: kubectl get secret awx-demo-admin-password -n awx -o jsonpath="{.data.password}" | base64 --decode
+          register: password_res
+          changed_when: false
+
+        - name: 10.3 Hien thi thong tin truy cap AWX
+          ansible.builtin.debug:
+            msg:
+              - "=========================================================="
+              - "🎉 AWX DEPLOYMENT SUCCESSFUL!"
+              - "🌐 Access URL: http://{{ hostvars['k8s-master']['ansible_host'] }}:{{ nodeport_res.stdout }}"
+              - "👤 Username: admin"
+              - "🔑 Password: {{ password_res.stdout }}"
+              - "=========================================================="
+      when: secret_check.rc == 0
+...
