@@ -37,7 +37,7 @@
               kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
           register: lpp_patch
           changed_when: "'patched' in lpp_patch.stdout"
-      when: (sc_check.stdout | from_json).items | length == 0
+      when: (sc_check.stdout | from_json)['items'] | length == 0
 
     - name: 4. Khoi tao file dinh nghia AWX Instance (awx-demo.yml)
       ansible.builtin.copy:
