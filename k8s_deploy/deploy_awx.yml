@@ -33,7 +33,8 @@
 
         - name: 3.2 Dat local-path lam StorageClass mac dinh (default)
           ansible.builtin.command:
-            cmd: kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+            cmd: >-
+              kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
           register: lpp_patch
           changed_when: "'patched' in lpp_patch.stdout"
       when: (sc_check.stdout | from_json).items | length == 0
