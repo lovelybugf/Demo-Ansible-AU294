@@ -1,0 +1,3 @@
+---
+# Variables defined specifically for host localhost
+custom_greeting: "Xin chào từ máy Control Node localhost!"

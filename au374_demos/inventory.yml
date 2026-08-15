@@ -1,0 +1,14 @@
+---
+# Static inventory in YAML format (AU374 Chapter 5 standard)
+all:
+  children:
+    webservers:
+      hosts:
+        web_server_1:
+          # Human readable name mapped via ansible_host
+          ansible_host: 172.25.250.20
+          ansible_user: ducnam
+    local:
+      hosts:
+        localhost:
+          ansible_connection: local

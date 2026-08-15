@@ -1,0 +1,29 @@
+---
+# Playbook demonstrating advanced variable precedence, fact gathering and FQCN (AU374)
+- name: Play 1 - Demo Variable Precedence and Group/Host Vars
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Print welcome message and greeting from host_vars
+      ansible.builtin.debug:
+        msg: "Greeting: {{ custom_greeting }}"
+
+    - name: Print global variable from group_vars/all/common.yml
+      ansible.builtin.debug:
+        msg: "Global Env: {{ global_env }}"
+
+- name: Play 2 - Demo Webservers Configuration and Facts
+  hosts: webservers
+  gather_facts: true
+  tasks:
+    - name: Print system facts collected from target host
+      ansible.builtin.debug:
+        msg: "Target Host OS: {{ ansible_facts['os_family'] }} {{ ansible_facts['distribution_version'] }}"
+
+    - name: Print web port and doc root from group_vars/webservers/apache.yml
+      ansible.builtin.debug:
+        msg: "Apache configuration -> Port: {{ web_port }} | Document Root: {{ web_doc_root }}"
+
+    - name: Verify global variable visibility here
+      ansible.builtin.debug:
+        msg: "Global Env visible on webserver: {{ global_env }}"

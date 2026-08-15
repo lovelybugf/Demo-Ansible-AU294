@@ -1,0 +1,5 @@
+---
+# Variables defined for group webservers
+web_port: 8080
+web_service_name: httpd
+web_doc_root: /var/www/html

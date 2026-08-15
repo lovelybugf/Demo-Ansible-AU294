@@ -1,0 +1,4 @@
+---
+# Variables defined globally for all groups (AU374 group_vars directory layout)
+global_env: "Red Hat AU374 Practice"
+system_timeout: 30

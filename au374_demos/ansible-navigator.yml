@@ -1,0 +1,12 @@
+---
+ansible-navigator:
+  execution-environment:
+    container-engine: podman
+    enabled: true
+    # Default public image, or registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:latest
+    image: quay.io/ansible/creator-ee:latest
+    pull:
+      policy: missing
+  mode: stdout
+  playbook-artifact:
+    enable: false
