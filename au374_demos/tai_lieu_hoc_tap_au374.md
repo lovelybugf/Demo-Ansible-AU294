@@ -96,6 +96,28 @@ collections/*
 .ansible-navigator/
 ```
 
+### 6. Kiến Trúc Red Hat Ansible Automation Platform (AAP)
+Kiến trúc của AAP (từ phiên bản 2.x trở đi) bao gồm các thành phần cốt lõi:
+* **Control Node (Máy điều khiển)**: Máy chạy Ansible, thực thi các lệnh quản trị và điều khiển các máy đích.
+* **Managed Hosts (Máy được quản lý)**: Các máy chủ, thiết bị mạng hoặc tài nguyên đám mây nhận lệnh từ Control Node. Ansible không cần cài đặt agent trên các máy này (Agentless), giao tiếp qua SSH hoặc WinRM.
+* **Tách biệt Control Plane và Execution Plane**: 
+  * Control Plane (Giao diện đồ họa, lập lịch, RBAC) được quản lý bởi Automation Controller.
+  * Execution Plane (Nơi thực thi playbook thực tế) chạy trong các container **Execution Environments (EE)** cô lập, giúp không bị xung đột phiên bản Python.
+* **Automation Mesh**: Mạng lưới truyền dữ liệu phân tán giúp mở rộng quy mô thực thi.
+
+### 7. Hướng Dẫn Chạy Ansible Navigator (Trình điều khiển chạy Playbook)
+`ansible-navigator` là công cụ dòng lệnh hiện đại được khuyên dùng để kiểm tra cú pháp, chạy playbook và quản lý môi trường thực thi (EE).
+* **Lệnh chạy playbook cơ bản**:
+  ```bash
+  ansible-navigator run site.yml
+  ```
+* **Các tham số dòng lệnh quan trọng**:
+  * `--mode stdout` (hoặc `-m stdout`): Chạy ở chế độ dòng lệnh văn bản truyền thống. Nếu không chỉ định, mặc định chạy ở chế độ tương tác vẽ bảng (`interactive`).
+  * `--eei <image_name>` (hoặc `--execution-environment-image`): Chỉ định ảnh container chứa môi trường thực thi playbook.
+  * `--pp <policy>` (hoặc `--pull-policy`): Chính sách tải ảnh container về (`always`, `missing`, `never`).
+  * `--pae false` (hoặc `--playbook-artifact-enable false`): Tắt tạo log chạy dạng JSON để cho phép nhập mật khẩu bảo mật tương tác từ bàn phím.
+  * `--syntax-check`: Chỉ kiểm tra cú pháp của playbook mà không thực thi.
+
 ---
 
 <a name="chương-2"></a>
