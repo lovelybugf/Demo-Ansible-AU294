@@ -1,12 +1,28 @@
 ---
 ansible-navigator:
   execution-environment:
+    # 1. CẤU HÌNH CONTAINER ENGINE
+    # Sử dụng Podman làm Container Engine để chạy Execution Environment (EE) (Phù hợp và mặc định trên RHEL 8/9)
     container-engine: podman
+    
+    # Kích hoạt chế độ chạy playbook cô lập bên trong container thay vì môi trường máy thật
     enabled: true
-    # Default public image, or registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:latest
+    
+    # 2. CONTAINER IMAGE CHO MÔ TRƯỜNG THỰC THI (EE)
+    # Image chính thức của Ansible chứa đầy đủ các Collection cần thiết.
+    # Trong môi trường doanh nghiệp của Red Hat, bạn có thể đổi thành: registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:latest
     image: quay.io/ansible/creator-ee:latest
+    
+    # 3. CHÍNH SÁCH TẢI IMAGE (PULL POLICY)
     pull:
+      # policy: missing nghĩa là hệ thống chỉ kéo (pull) image từ internet về khi dưới máy cục bộ chưa có sẵn
       policy: missing
+  
+  # 4. CHẾ ĐỘ XUẤT THÔNG TIN LOG (MODE STDOUT)
+  # Đặt chế độ stdout để hiển thị log chạy trực tiếp trên terminal thay vì mở giao diện vẽ bảng (TUI), giúp dễ dàng copy và debug lỗi
   mode: stdout
+  
+  # 5. CẤU HÌNH TẠO FILE LOG TẠM (PLAYBOOK ARTIFACT)
   playbook-artifact:
+    # Tắt tự động tạo các file log JSON tạm thời sau mỗi lần chạy playbook để tránh làm rác thư mục dự án
     enable: false

@@ -1,0 +1,22 @@
+# CẤU HÌNH GIT IGNORE CHO DỰ ÁN ANSIBLE (AU374 Chương 1)
+# Bỏ qua toàn bộ nội dung của các Role và Collection được tải về tự động qua Galaxy
+# để tránh đẩy mã nguồn không phải do chúng ta tự viết lên kho lưu trữ Git của dự án.
+
+# 1. Bỏ qua các Role được tải về tự động
+roles/**
+# Nhưng không bỏ qua tệp yêu cầu cài đặt requirements.yml để đồng nghiệp có thể đồng bộ
+!roles/requirements.yml
+
+# 2. Bỏ qua các Collection tải về tự động
+collections/*
+# Không bỏ qua file định nghĩa dependencies requirements.yml của project
+!collections/requirements.yml
+
+# 3. Bỏ qua các tệp tin log và tệp tin ghi lại vết lỗi khi chạy thất bại
+*.log
+*.retry
+.ansible-navigator/
+
+# 4. Bỏ qua các tệp tin Playbook Artifact do ansible-navigator tạo ra khi thực thi (nếu có bật)
+*artifact-*.json
+*.tmp

@@ -1,14 +1,22 @@
 ---
-# Static inventory in YAML format (AU374 Chapter 5 standard)
+# TỆP INVENTORY TĨNH ĐỊNH DẠNG YAML (Chuẩn nâng cao Red Hat AU374 Chương 5)
+# Nhóm 'all' là nhóm ngầm định cao nhất chứa toàn bộ các nhóm con bên dưới
 all:
   children:
+    # 1. KHAI BÁO NHÓM MÁY CHỦ WEB (webservers)
     webservers:
       hosts:
+        # Sử dụng bí danh dễ đọc (Human Readable Name) đại diện cho máy chủ
         web_server_1:
-          # Human readable name mapped via ansible_host
+          # Thuộc tính ansible_host chỉ định địa chỉ IP hoặc FQDN thực tế của máy chủ để Ansible kết nối qua SSH
           ansible_host: 172.25.250.20
+          
+          # Tài khoản SSH dùng để kết nối và đăng nhập vào máy đích
           ansible_user: ducnam
+          
+    # 2. KHAI BÁO NHÓM MÁY CHỦ CỤC BỘ (local)
     local:
       hosts:
         localhost:
+          # Chỉ định Ansible chạy lệnh trực tiếp cục bộ trên máy Control Node thay vì cố gắng kết nối SSH
           ansible_connection: local
